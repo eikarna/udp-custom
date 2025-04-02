@@ -4,7 +4,7 @@ Description=UDP Custom by ePro Dev. Team
 [Service]
 User=root
 Type=simple
-ExecStart=taskset -c 0 /root/udp/udp-custom server -exclude 7300,53
+ExecStart=/usr/bin/taskset -c 0 /root/udp/udp-custom server -exclude 7300,53
 WorkingDirectory=/root/udp/
 Restart=always
 RestartSec=2s
