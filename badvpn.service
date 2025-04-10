@@ -5,7 +5,7 @@ After=nss-lookup.target
 [Service]
 Restart=always
 Type=simple
-ExecStart=/usr/bin/taskset -c 0 /root/udp-custom/badvpn-udpgw --loglevel none --listen-addr 127.0.0.1:7300
+ExecStart=/usr/bin/taskset -c 0 /root/udp-custom/badvpn-udpgw --loglevel 0 --channel-loglevel 0 --listen-addr 127.0.0.1:7300 --udp-mtu 9000
 WorkingDirectory=/root/udp-custom/
 RestartSec=2s
 
