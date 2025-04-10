@@ -62,7 +62,7 @@ Usage: $0 {start|stop|status|list|add-rule|del-rule|backup|restore}
 
 Commands:
   start      : Enable IP forwarding dan pasang aturan default.
-               (Default: UDP CUSTOM (1:7299->3671) dan ZIVPN (6000:19999->5667) + aturan ufw dan firewalld jika aktif)
+               (Default: UDP CUSTOM (1:5999->3671) dan ZIVPN (6000:19999->5667) + aturan ufw dan firewalld jika aktif)
   stop       : Flush aturan NAT dan disable IP forwarding.
   status     : Tampilkan status IP forwarding dan aturan firewall saat ini.
   list       : List aturan iptables (tabel NAT) dan status ufw.
@@ -133,13 +133,11 @@ apply_default_rules() {
     fi
     log_msg "INFO" "Menggunakan interface: ${interface}"
 
-    # UDP CUSTOM: Port forwarding UDP dari port 1 hingga 7299 ke port 3671
-    iptables -t nat -A PREROUTING -i "${interface}" -p udp --dport 1:7299 -j DNAT --to-destination :3671
-    log_msg "INFO" "Aturan iptables UDP CUSTOM diterapkan: 1:7299 -> 3671"
+    ./port-forward.sh
 
-    # ZIVPN: Port forwarding UDP dari port 6000 hingga 19999 ke port 5667
-    iptables -t nat -A PREROUTING -i "${interface}" -p udp --dport 6000:19999 -j DNAT --to-destination :5667
-    log_msg "INFO" "Aturan iptables ZIVPN diterapkan: 6000:19999 -> 5667"
+    # Udp Custom: izinkan port untuk Udp Custom
+    ufw allow 1:5999/udp && ufw allow 3671/udp
+    log_msg "INFO" "Aturan UFW diterapkan untuk port 1:5999/udp dan 3671/udp"
 
     # UFW: izinkan port untuk ZIVPN
     ufw allow 6000:19999/udp && ufw allow 5667/udp
