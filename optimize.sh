@@ -39,3 +39,4 @@ sysctl -p
 # Atur agar aplikasi server tunneling berjalan dengan prioritas tinggi
 renice -n -10 -p $(pgrep udp-custom)  # Ganti dengan PID server UDP
 renice -n -10 -p $(pgrep badvpn-udpgw)  # Ganti dengan PID Server BadVPN
+renice -n -10 -p $(pgrep zivpn)  # Ganti dengan PID Server ZIVPN
