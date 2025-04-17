@@ -1,7 +1,7 @@
 {
   "listen": ":5667",
-  "cert": "zivpn/zivpn.crt",
-  "key": "zivpn/zivpn.key",
+  "cert": "zivpn.crt",
+  "key": "zivpn.key",
   "obfs": "",
   "up_mbps": 100,
   "down_mbps": 250,

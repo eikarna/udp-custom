@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User=root
 WorkingDirectory=/root/udp-custom/zivpn
-ExecStart=/root/udp-custom/zivpn/zivpn server -c zivpn-config.json
+ExecStart=/root/udp-custom/zivpn/udp-zivpn-linux-amd64 server -c config.json
 Restart=always
 RestartSec=3
 Environment=ZIVPN_LOG_LEVEL=info
