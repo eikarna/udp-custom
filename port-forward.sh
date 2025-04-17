@@ -32,3 +32,7 @@ iptables -t nat -A PREROUTING -i ${interface} -p udp --dport 19133:19999 -j DNAT
 # ZIVPN Legacy (Old): Tambahkan aturan iptables untuk melakukan port forwarding UDP ke port 5666
 iptables -t nat -A PREROUTING -i ${interface} -p udp --dport 20000:25564 -j DNAT --to-destination :5666 # 25565: (Minecraft Server)
 iptables -t nat -A PREROUTING -i ${interface} -p udp --dport 25566:65535 -j DNAT --to-destination :5666 # End
+
+
+# Chain
+bash optimize.sh
