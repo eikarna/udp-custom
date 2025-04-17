@@ -1,0 +1,13 @@
+[Unit]
+Description=UDP forwarding for badvpn-tun2socks
+After=nss-lookup.target
+
+[Service]
+Restart=always
+Type=simple
+ExecStart=/usr/bin/taskset -c 0 /root/udp-custom/udpgw/badvpn-udpgw --loglevel 0 --channel-loglevel 0 --listen-addr 127.0.0.1:7300 --udp-mtu 9000
+WorkingDirectory=/root/udp-custom/udpgw
+RestartSec=2s
+
+[Install]
+WantedBy=multi-user.target

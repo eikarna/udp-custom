@@ -1,0 +1,15 @@
+[Unit]
+Description=Tunnel server auto-setup script service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/udp-custom/scripts
+# Tunda 5 detik setelah network-online.target terpenuhi
+ExecStartPre=/bin/sleep 5
+ExecStart=/bin/bash port-forward.sh
+
+[Install]
+WantedBy=default.target

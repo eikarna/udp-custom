@@ -1,0 +1,13 @@
+[Unit]
+Description=UDP Custom by ePro Dev. Team
+
+[Service]
+User=root
+Type=simple
+ExecStart=/usr/bin/taskset -c 0 udp-custom server
+WorkingDirectory=/root/udp-custom/udp_custom
+Restart=always
+RestartSec=2s
+
+[Install]
+WantedBy=default.target
