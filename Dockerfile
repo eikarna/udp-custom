@@ -64,6 +64,8 @@ EXPOSE 6000-19999/udp
 EXPOSE 20000-65535/udp
 # ==================================================================================================
 
+# Needed by HuggingFace Spaces (to avoid starting stuck)
+EXPOSE 7860
 
 # Tentukan entrypoint yang akan menjalankan skrip startup
 ENTRYPOINT ["/app/start.sh"]
