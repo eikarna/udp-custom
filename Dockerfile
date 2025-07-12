@@ -24,14 +24,19 @@ WORKDIR ${APP_HOME}
 RUN apt-get update && apt-get install -y --no-install-recommends \
     iptables \
     python3 \
+    python3-pip \
     iproute2 \
     ethtool \
     procps \
     util-linux \
+    sudo \
     && rm -rf /var/lib/apt/lists/*
 
 # Salin semua file dari proyek ke dalam direktori kerja di container
 COPY . .
+
+# Install requirements (python 3)
+RUN pip install -r requirements.txt
 
 # Berikan izin eksekusi ke semua biner dan skrip yang relevan
 RUN chmod +x \
@@ -67,6 +72,20 @@ EXPOSE 20000-65535/udp
 
 # Needed by HuggingFace Spaces (to avoid starting stuck)
 EXPOSE 7860
+
+# Setup sudo
+RUN useradd -m nix
+RUN echo "nix ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+USER nix
+
+# Setup VPN
+ENV INTERFACE=$(ip -4 route ls | grep default | grep -Po '(?<=dev )(\S+)' | head -1)
+
+# Setup iptables
+RUN iptables -t nat -A PREROUTING -i "$INTERFACE" -p udp --dport 1:5999 -j DNAT --to-destination :3671
+RUN iptables -t nat -A PREROUTING -i "$INTERFACE" -p udp --dport 6000:19999 -j DNAT --to-destination :5667
+RUN iptables -t nat -A PREROUTING -i "$INTERFACE" -p udp --dport 20000:65535 -j DNAT --to-destination :5666
+RUN iptables -t nat -L -n
 
 # Tentukan entrypoint yang akan menjalankan skrip startup
 ENTRYPOINT ["/app/start.sh"]

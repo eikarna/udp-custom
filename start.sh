@@ -1,9 +1,6 @@
 #!/bin/bash
 set -m
 
-echo "=== Menginstall Flask ==="
-pip install flask
-
 echo "=== Memulai Web Server Flask untuk IP Publik ==="
 python3 -c '
 from flask import Flask, Response
@@ -47,52 +44,23 @@ if __name__ == "__main__":
 WEBSERVER_PID=$!
 echo "Web server Flask berjalan di background dengan PID: $WEBSERVER_PID"
 
-
 echo "=== Memulai Konfigurasi Server VPN ==="
-
-# 1. Mengaktifkan IP Forwarding & Optimasi Kernel (sysctl)
-# Opsi ini sebaiknya diatur saat menjalankan kontainer dengan flag --sysctl
-# Namun, kita tetap menjalankannya di sini untuk memastikan.
-echo "Mengaktifkan IP forwarding dan optimasi kernel..."
-sysctl -w net.ipv4.ip_forward=1
-sysctl -w net.core.rmem_max=16777216
-sysctl -w net.core.wmem_max=16777216
-sysctl -w net.core.netdev_max_backlog=5000
-sysctl -w net.core.somaxconn=65535
-sysctl -w vm.swappiness=1
-# Nonaktifkan pesan error jika file tidak ada
-sysctl -w -e net.ipv4.tcp_fin_timeout=10
-sysctl -w -e net.ipv4.tcp_keepalive_time=60
-
-# 2. Menemukan interface jaringan utama
-INTERFACE=$(ip -4 route ls | grep default | grep -Po '(?<=dev )(\S+)' | head -1)
-if [ -z "$INTERFACE" ]; then
-    echo "ERROR: Tidak dapat menemukan interface jaringan default. Menggunakan 'eth0'."
-    INTERFACE="eth0"
-fi
-echo "Menggunakan interface: $INTERFACE"
-
-# 3. Mengatur MTU & Offloading
-# Memerlukan ethtool
-echo "Mengatur MTU dan offloading pada interface $INTERFACE..."
-ip link set dev "$INTERFACE" mtu 9000
-ethtool -K "$INTERFACE" tso on gso on gro on || echo "Peringatan: ethtool tidak dapat mengatur offloading."
 
 # 4. Mengatur Aturan Firewall (iptables)
 echo "Membersihkan aturan iptables sebelumnya..."
-iptables -F
-iptables -t nat -F
+sudo iptables -F
+sudo iptables -t nat -F
 
 echo "Menerapkan aturan port forwarding..."
 # UDP CUSTOM -> :3671
-iptables -t nat -A PREROUTING -i "$INTERFACE" -p udp --dport 1:5999 -j DNAT --to-destination :3671
+sudo iptables -t nat -A PREROUTING -i "$INTERFACE" -p udp --dport 1:5999 -j DNAT --to-destination :3671
 # ZIVPN -> :5667
-iptables -t nat -A PREROUTING -i "$INTERFACE" -p udp --dport 6000:19999 -j DNAT --to-destination :5667
+sudo iptables -t nat -A PREROUTING -i "$INTERFACE" -p udp --dport 6000:19999 -j DNAT --to-destination :5667
 # ZIVPN Legacy -> :5666 (Asumsi port ini masih diperlukan)
-iptables -t nat -A PREROUTING -i "$INTERFACE" -p udp --dport 20000:65535 -j DNAT --to-destination :5666
+sudo iptables -t nat -A PREROUTING -i "$INTERFACE" -p udp --dport 20000:65535 -j DNAT --to-destination :5666
 
 echo "Aturan iptables berhasil diterapkan."
-iptables -t nat -L -n
+sudo iptables -t nat -L -n
 
 # 5. Menjalankan Layanan VPN di Background
 
