@@ -57,41 +57,6 @@ echo "Web server IP berjalan di background dengan PID: $WEBSERVER_PID"
 
 echo "=== Memulai Konfigurasi Server VPN ==="
 
-# Get the directory where the script is located
-SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-PROJECT_ROOT=$(cd -- "$SCRIPT_DIR/.." &> /dev/null && pwd)
-
-# Path to the ZIVPN binary
-ZIVPN_BINARY="$PROJECT_ROOT/zivpn/udp-zivpn-linux-amd64"
-ZIVPN_URL="https://github.com/zahidbd2/udp-zivpn/releases/download/udp-zivpn_1.4.9/udp-zivpn-linux-amd64"
-ZIVPN_DIR=$(dirname "$ZIVPN_BINARY")
-
-# Check if the ZIVPN binary exists, and download if it does not
-if [ ! -f "$ZIVPN_BINARY" ]; then
-    echo "ZIVPN binary not found. Downloading..."
-    # Ensure the directory exists
-    mkdir -p "$ZIVPN_DIR"
-    # Download the binary using wget or curl
-    if command -v wget >/dev/null 2>&1; then
-        wget -O "$ZIVPN_BINARY" "$ZIVPN_URL"
-    elif command -v curl >/dev/null 2>&1; then
-        curl -L -o "$ZIVPN_BINARY" "$ZIVPN_URL"
-    else
-        echo "Error: Neither wget nor curl is available to download the ZIVPN binary."
-        exit 1
-    fi
-    # Make the binary executable
-    if [ -f "$ZIVPN_BINARY" ]; then
-        chmod +x "$ZIVPN_BINARY"
-        echo "ZIVPN binary downloaded and made executable."
-    else
-        echo "Error: Failed to download ZIVPN binary."
-        exit 1
-    fi
-else
-    echo "ZIVPN binary already exists. Skipping download."
-fi
-
 # 1. Mengaktifkan IP Forwarding & Optimasi Kernel (sysctl)
 # Opsi ini sebaiknya diatur saat menjalankan kontainer dengan flag --sysctl
 # Namun, kita tetap menjalankannya di sini untuk memastikan.
@@ -160,7 +125,7 @@ echo "=== Semua layanan telah dimulai ==="
 echo "PID: webserver=$WEBSERVER_PID, badvpn=$BADVPN_PID, udp-custom=$UDP_CUSTOM_PID, zivpn=$ZIVPN_PID"
 
 # 6. Tunggu sinyal keluar dan bersihkan
-trap "echo 'Menutup layanan...'; kill $WEBSERVER_PID $BADVPN_PID $UDP_CUSTOM_PID $ZIVPN_PID; exit 0" SIGINT SIGTERM
+# trap "echo 'Menutup layanan...'; kill $WEBSERVER_PID $BADVPN_PID $UDP_CUSTOM_PID $ZIVPN_PID; exit 0" SIGINT SIGTERM
 
 # Tunggu semua proses background selesai
 # fg %1 akan membawa proses pertama ke foreground, menjaga kontainer tetap berjalan

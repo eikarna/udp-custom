@@ -23,6 +23,7 @@ WORKDIR ${APP_HOME}
 # - taskset: Untuk mengikat proses ke core CPU (opsional, tapi ada di service asli)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     iptables \
+    python3 \
     iproute2 \
     ethtool \
     procps \
