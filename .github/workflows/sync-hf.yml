@@ -16,4 +16,4 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git push --force https://eikarna:$HF_TOKEN@huggingface.co/spaces/eikarna/myvpnserver main:main
+          git push --force https://eikarna:$HF_TOKEN@huggingface.co/spaces/eikarna/udp-custom main:main
