@@ -36,7 +36,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY . .
 
 # Install requirements (python 3)
-RUN pip install -r requirements.txt
+# Pastikan Anda memiliki file requirements.txt dengan 'flask' di dalamnya
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Berikan izin eksekusi ke semua biner dan skrip yang relevan
 RUN chmod +x \
@@ -73,21 +74,13 @@ EXPOSE 20000-65535/udp
 # Needed by HuggingFace Spaces (to avoid starting stuck)
 EXPOSE 7860
 
-# Setup sudo
+# Setup sudo untuk user 'nix'
 RUN useradd -m nix
 RUN echo "nix ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 USER nix
 
-# Setup VPN
-ENV INTERFACE=$(ip -4 route ls | grep default | grep -Po '(?<=dev )(\S+)' | head -1)
-
-# Setup iptables
-RUN iptables -t nat -A PREROUTING -i "$INTERFACE" -p udp --dport 1:5999 -j DNAT --to-destination :3671
-RUN iptables -t nat -A PREROUTING -i "$INTERFACE" -p udp --dport 6000:19999 -j DNAT --to-destination :5667
-RUN iptables -t nat -A PREROUTING -i "$INTERFACE" -p udp --dport 20000:65535 -j DNAT --to-destination :5666
-RUN iptables -t nat -L -n
-
 # Tentukan entrypoint yang akan menjalankan skrip startup
+# Semua logika dinamis (iptables, sysctl) dipindahkan ke start.sh
 ENTRYPOINT ["/app/start.sh"]
 
 # ==================================================================================================
@@ -103,8 +96,9 @@ ENTRYPOINT ["/app/start.sh"]
 #   --sysctl net.ipv4.ip_forward=1 \
 #   --sysctl net.core.rmem_max=16777216 \
 #   --sysctl net.core.wmem_max=16777216 \
+#   -p 7860:7860 \
 #   -p 8080:8080/tcp \
-#   -p 1000-5000:1000-5000/udp \
+#   -p 1-65535:1-65535/udp \
 #   <nama-image-anda>
 #
 # Di Hugging Face Spaces, Anda perlu mengkonfigurasi ini di `README.md` (metadata).
@@ -115,7 +109,7 @@ ENTRYPOINT ["/app/start.sh"]
 # colorFrom: blue
 # colorTo: green
 # sdk: docker
-# app_port: 8080
+# app_port: 7860
 # docker_args: "--cap-add=NET_ADMIN --cap-add=SYS_NICE"
 # ---
 #
