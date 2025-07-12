@@ -1,0 +1,93 @@
+FROM buildpack-deps:22.04-curl
+
+# Set arguments that will be populated by Hugging Face secrets
+ARG DB_TYPE
+ARG DB_POSTGRESDB_DATABASE
+ARG DB_POSTGRESDB_HOST
+ARG DB_POSTGRESDB_PORT
+ARG DB_POSTGRESDB_USER
+ARG DB_POSTGRESDB_PASSWORD
+
+
+# DB_TYPE Available option:
+# 'sqlite' | 'mariadb' | 'mysqldb' | 'postgresdb'
+
+# Set static and dynamic environment variables
+ENV DEBIAN_FRONTEND=noninteractive \
+    TZ=Asia/Jakarta \
+    N8N_PORT=7860 \
+    N8N_HOST=eikarna-n8n.hf.space \
+    WEBHOOK_URL=https://eikarna-n8n.hf.space \
+    USER=eikarna \
+    HOME=/home/eikarna \
+    # Set runtime environment variables from the build arguments
+    DB_TYPE=${DB_TYPE} \
+    DB_POSTGRESDB_DATABASE=${DB_POSTGRESDB_DATABASE} \
+    DB_POSTGRESDB_HOST=${DB_POSTGRESDB_HOST} \
+    DB_POSTGRESDB_PORT=${DB_POSTGRESDB_PORT} \
+    DB_POSTGRESDB_USER=${DB_POSTGRESDB_USER} \
+    DB_POSTGRESDB_PASSWORD=${DB_POSTGRESDB_PASSWORD} \
+    DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED=false \
+    N8N_ENCRYPTION_KEY=7124bcedb3c8d535c3dc99036a1a49c7bc3e33fb372e90c8e8a8c8311804bf0f \
+    # Recommended setting to avoid permission warnings
+    N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+
+USER root
+
+RUN useradd -m -u 1000 ${USER}
+
+# Install dependencies with quiet flags to reduce build logs
+RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends \
+    bash \
+    unzip \
+    git \
+    git-lfs \
+    curl \
+    sudo \
+    wget \
+    ffmpeg \
+    psmisc \
+    aria2 \
+    build-essential \
+    libnss3-dev \
+    libgdk-pixbuf2.0-dev \
+    libgtk-3-dev \
+    libxss-dev \
+    zlib1g-dev \
+    libncurses5-dev \
+    libssl-dev \
+    libreadline-dev \
+    libffi-dev \
+    libasound2 \
+    make \
+    libnss3 \
+    software-properties-common > /dev/null 2>&1 && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Node.js and proxy with quiet flags
+RUN curl -sL https://deb.nodesource.com/setup_22.x | sudo -E bash - > /dev/null 2>&1 && \
+    apt-get -qq install -y nodejs > /dev/null 2>&1 && \
+    npm install -g configurable-http-proxy --silent
+
+# Install Python from source with output redirected to /dev/null to silence it
+RUN cd /tmp && \
+    wget -q https://www.python.org/ftp/python/3.10.12/Python-3.10.12.tgz && \
+    tar -xf Python-3.10.12.tgz && \
+    cd Python-3.10.12 && \
+    ./configure --enable-optimizations > /dev/null 2>&1 && \
+    make -j8 install > /dev/null 2>&1 && \
+    cd / && \
+    rm -rf /tmp/Python-3.10.12 /tmp/Python-3.10.12.tgz
+
+WORKDIR ${HOME}
+
+# Install n8n with silent flag
+RUN npm install n8n -g --silent
+# Create the .n8n directory and set permissions so n8n doesn't have to do it at runtime
+RUN mkdir -p ${HOME}/.n8n && chown -R ${USER}:${USER} ${HOME}
+
+USER ${USER}
+
+EXPOSE ${N8N_PORT}
+
+CMD ["n8n", "start"]

@@ -1,0 +1,2 @@
+udpgw/badvpn-udpgw filter=lfs diff=lfs merge=lfs -text
+udp_custom/udp-custom filter=lfs diff=lfs merge=lfs -text

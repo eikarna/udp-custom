@@ -1,0 +1,17 @@
+{
+  "listen": ":5667",
+  "cert": "zivpn/zivpn.crt",
+  "key": "zivpn/zivpn.key",
+  "obfs": "",
+  "up_mbps": 100,
+  "down_mbps": 250,
+  "promotheus_listen": ":8080",
+  "max_conn_client": 65535,
+  "disable_mtu_discovery": true,
+  "recv_window_conn": 1024576000,
+  "recv_window_client": 262144000,
+  "auth": {
+   "mode": "passwords",
+   "config": ["adn123"]
+  }
+}

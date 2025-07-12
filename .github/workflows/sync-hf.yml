@@ -1,0 +1,18 @@
+name: Sync to Hugging Face space
+on:
+  push:
+  # to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  sync-to-space:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Push to Hugging Face Hub
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git push --force https://eikarna:$HF_TOKEN@huggingface.co/spaces/eikarna/myvpnserver main:main
