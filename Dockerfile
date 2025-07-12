@@ -37,7 +37,6 @@ RUN chmod +x \
     ${APP_HOME}/scripts/*.sh \
     ${APP_HOME}/udpgw/badvpn-udpgw \
     ${APP_HOME}/udp_custom/udp-custom \
-    ${APP_HOME}/zivpn/udp-zivpn-linux-amd64 \
     ${APP_HOME}/start.sh
 
 # ==================================================================================================
