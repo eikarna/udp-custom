@@ -124,7 +124,7 @@ ZIVPN_PID=$!
 echo "=== Semua layanan telah dimulai ==="
 echo "PID: webserver=$WEBSERVER_PID, badvpn=$BADVPN_PID, udp-custom=$UDP_CUSTOM_PID, zivpn=$ZIVPN_PID"
 
-# 6. Tunggu sinyal keluar dan bersihkan
+# 6. Tunggu sinyal keluar dan bersihkan (HANYA UNTUK SELAIN HF SPACES)
 # trap "echo 'Menutup layanan...'; kill $WEBSERVER_PID $BADVPN_PID $UDP_CUSTOM_PID $ZIVPN_PID; exit 0" SIGINT SIGTERM
 
 # Tunggu semua proses background selesai
