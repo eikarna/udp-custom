@@ -1,23 +1,25 @@
 #!/bin/bash
 set -m
 
-echo "=== Memulai Web Server untuk IP Publik ==="
+echo "=== Menginstall Flask ==="
+pip install flask
+
+echo "=== Memulai Web Server Flask untuk IP Publik ==="
 python3 -c '
-import http.server
-import socketserver
-import json
+from flask import Flask, Response
 import urllib.request
+import json
 import os
 
+app = Flask(__name__)
 PORT = 7860
 
 def get_public_ip():
     """Fetches the public IP address from an external service."""
-    # In Hugging Face, the SPACE_HOST variable gives the public URL.
-    # We use external services to get the actual public IP address.
     urls = ["https://api.ipify.org?format=json", "https://ipinfo.io/json"]
     for url in urls:
         try:
+            # Use a timeout to prevent the request from hanging indefinitely
             with urllib.request.urlopen(url, timeout=5) as response:
                 if response.status == 200:
                     data = json.loads(response.read().decode("utf-8"))
@@ -30,29 +32,20 @@ def get_public_ip():
     print("Semua metode untuk mendapatkan IP publik gagal. Menggunakan fallback 127.0.0.1.")
     return "127.0.0.1" # Fallback IP
 
-class IPHandler(http.server.BaseHTTPRequestHandler):
-    def do_GET(self):
-        """Handles GET requests to the root path."""
-        if self.path == "/":
-            self.send_response(200)
-            self.send_header("Content-type", "text/plain; charset=utf-8")
-            self.end_headers()
-            public_ip = get_public_ip()
-            self.wfile.write(public_ip.encode("utf-8"))
-        else:
-            self.send_error(404, "File Not Found: " + self.path)
-
-def run_server():
-    """Starts the HTTP server."""
-    with socketserver.TCPServer(("", PORT), IPHandler) as httpd:
-        print(f"Server IP dimulai di http://0.0.0.0:{PORT}")
-        httpd.serve_forever()
+@app.route("/")
+def get_ip_route():
+    """Handles GET requests to the root path."""
+    public_ip = get_public_ip()
+    return Response(public_ip, mimetype="text/plain")
 
 if __name__ == "__main__":
-    run_server()
+    # Use host="0.0.0.0" to be accessible from outside the container.
+    # Port 7860 is the default for Hugging Face Spaces.
+    print(f"Server Flask IP dimulai di http://0.0.0.0:{PORT}")
+    app.run(host="0.0.0.0", port=PORT)
 ' &
 WEBSERVER_PID=$!
-echo "Web server IP berjalan di background dengan PID: $WEBSERVER_PID"
+echo "Web server Flask berjalan di background dengan PID: $WEBSERVER_PID"
 
 
 echo "=== Memulai Konfigurasi Server VPN ==="
@@ -124,13 +117,13 @@ ZIVPN_PID=$!
 echo "=== Semua layanan telah dimulai ==="
 echo "PID: webserver=$WEBSERVER_PID, badvpn=$BADVPN_PID, udp-custom=$UDP_CUSTOM_PID, zivpn=$ZIVPN_PID"
 
-# 6. Tunggu sinyal keluar dan bersihkan (HANYA UNTUK SELAIN HF SPACES)
+# 6. Tunggu sinyal keluar dan bersihkan
 # trap "echo 'Menutup layanan...'; kill $WEBSERVER_PID $BADVPN_PID $UDP_CUSTOM_PID $ZIVPN_PID; exit 0" SIGINT SIGTERM
 
 # Tunggu semua proses background selesai
 # fg %1 akan membawa proses pertama ke foreground, menjaga kontainer tetap berjalan
 # dan memungkinkan trap untuk menangani sinyal dengan benar.
-wait $WEBSERVER_PID
-wait $BADVPN_PID
-wait $UDP_CUSTOM_PID
-wait $ZIVPN_PID
+# wait $WEBSERVER_PID
+# wait $BADVPN_PID
+# wait $UDP_CUSTOM_PID
+# wait $ZIVPN_PID
